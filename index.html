@@ -129,11 +129,19 @@
     }
 
     function prettyUK(e164) {
-      if (!e164.startsWith("+44")) return e164;
-      const rest = e164.slice(3);
-      // basic UK mobile spacing +44 #### ######
-      return `+44 ${rest.slice(0,4)} ${rest.slice(4,9)} ${rest.slice(9)}`.trim();
-    }
+  // Basic +44 mobile formatting: +44 7866 533165
+  if (!e164.startsWith("+44")) return e164;
+  const rest = e164.slice(3); // remove +44
+  if (rest.length === 10) {
+    // Standard UK mobile (10 digits)
+    return `+44 ${rest.slice(0,4)} ${rest.slice(4,7)} ${rest.slice(7)}`;
+  } else if (rest.length === 9) {
+    // Landline or odd variant
+    return `+44 ${rest.slice(0,3)} ${rest.slice(3,6)} ${rest.slice(6)}`;
+  }
+  return `+44 ${rest}`; // fallback
+}
+
 
     function openIfMatch(){
       if ((pw.value || '').trim().toLowerCase() === PASS.toLowerCase()){
