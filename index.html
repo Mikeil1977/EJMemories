@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Share a Memory for Emmie‑Jane</title>
+  <title>Share a Memory for Emmie-Jane</title>
   <style>
     :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#94a3b8; --accent:#38bdf8; }
-    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell, Noto Sans,sans-serif;background:linear-gradient(135deg,var(--bg),#111827)}
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:linear-gradient(135deg,var(--bg),#111827)}
     .wrap{min-height:100dvh;display:grid;place-items:center;padding:24px}
     .card{width:min(720px,100%);background:rgba(17,24,39,.8);backdrop-filter:saturate(160%) blur(6px);border:1px solid rgba(148,163,184,.2);border-radius:20px;padding:28px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
     h1{margin:0 0 6px;color:var(--text);font-weight:700;font-size:clamp(1.4rem,2.6vw,2rem)}
@@ -15,18 +15,20 @@
     .btn{display:flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid rgba(148,163,184,.3);border-radius:14px;padding:16px 18px;font-weight:600}
     .primary{background:var(--accent);color:#0b1220;border-color:transparent}
     .secondary{background:transparent;color:var(--text)}
+    .disabled{opacity:.55;pointer-events:none}
     small{color:var(--muted)}
     .foot{margin-top:16px;display:flex;flex-direction:column;gap:10px}
     .hidden{display:none}
     .pass{display:flex;gap:10px;margin:12px 0}
     .pass input{flex:1;border:1px solid rgba(148,163,184,.35);background:#0b1220;color:var(--text);border-radius:10px;padding:12px}
     .pass button{border:0;background:var(--accent);color:#061019;font-weight:700;border-radius:10px;padding:0 14px}
+    .hint{margin-top:8px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card" id="gate">
-      <h1>Share a Memory for Emmie‑Jane</h1>
+      <h1>Share a Memory for Emmie-Jane</h1>
       <p>This private page lets you send Mike a story or photo. Please enter the passphrase from the order of service.</p>
       <div class="pass">
         <input id="pw" type="password" placeholder="Passphrase" autocomplete="off" />
@@ -40,48 +42,91 @@
       <p>You can use either button below. If you’re on a phone, it will open your apps automatically.</p>
 
       <div class="btns">
-        <!-- Replace the number and email below -->
-        <a class="btn primary" id="smsBtn" href="smsto:+447700900123:I%20have%20a%20story%20to%20share%20about%20Emmie-Jane.%20(Feel%20free%20to%20attach%20a%20photo.)">Text Mike (SMS)</a>
-        <a class="btn secondary" id="mailBtn" href="mailto:stories@example.com?subject=Memory%20of%20Emmie-Jane&body=How%20you%20knew%20her%3A%0AStory%3A%0APermission%20to%20share%20(Y%2FN)%3A">Email a story</a>
+        <a class="btn primary" id="smsBtn" href="#">Text Mike (SMS)</a>
+        <a class="btn secondary" id="mailBtn" href="#">Email a story</a>
       </div>
 
-      <p><small>By sending a message/photo you consent to sharing it with Emmie‑Jane’s family. To remove or correct a submission, reply to Mike or email <span id="addr">stories@example.com</span>.</small></p>
+      <p class="hint hidden" id="desktopHint"><small>If you’re on a computer, the SMS button is disabled. Use the email button or copy the number below into your phone.</small></p>
+
+      <p><small>By sending a message/photo you consent to sharing it with Emmie-Jane’s family. To remove or correct a submission, reply to Mike or email <span id="addr"></span>.</small></p>
 
       <div class="foot">
         <small>Having trouble? You can copy these instead:</small>
-        <small><strong>Text:</strong> +44 7700 900123</small>
-        <small><strong>Email:</strong> mike.dalziel+ej@gmail.com</small>
+        <small><strong>Text:</strong> <span id="prettyPhone"></span></small>
+        <small><strong>Email:</strong> <span id="prettyEmail"></span></small>
       </div>
     </div>
   </div>
 
   <script>
-    // EDIT THESE THREE VALUES ONLY
-    const PASS = "cullen-bay-glitter";  // passphrase shown on the programme
-    const PHONE = "+447866533165";      // Mike's number in E.164 format
-    const EMAIL = "stories@example.com"; // inbox you manage
+    // ==== EDIT THESE THREE VALUES ONLY ====
+    const PASS  = "cullen-bay-glitter";       // passphrase shown on the programme
+    const PHONE = "+447866533165";            // Mike's number in E.164 format
+    const EMAIL = "mike.dalziel+ej@gmail.com";// inbox you manage
+    // ======================================
 
-    // Wire values into the page/links
-    const sms = `smsto:${PHONE}:I%20have%20a%20story%20to%20share%20about%20Emmie-Jane.%20(Feel%20free%20to%20attach%20a%20photo.)`;
-    const mail = `mailto:${EMAIL}?subject=Memory%20of%20Emmie-Jane&body=How%20you%20knew%20her%3A%0AStory%3A%0APermission%20to%20share%20(Y%2FN)%3A`;
-    document.getElementById('smsBtn').href = sms;
-    document.getElementById('mailBtn').href = mail;
-    document.getElementById('addr').textContent = EMAIL;
-    document.querySelector('.foot small:nth-child(3)').innerHTML = `<strong>Email:</strong> ${EMAIL}`;
-    document.querySelector('.foot small:nth-child(2)').innerHTML = `<strong>Text:</strong> ${PHONE.replace('+44','+44 ')}`;
+    // Helpers
+    const ua = navigator.userAgent || "";
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isAndroid = /Android/.test(ua);
+    const isMobile = isIOS || isAndroid;
+    const BODY = encodeURIComponent("I have a story to share about Emmie-Jane. (Feel free to attach a photo.)");
 
-    // Simple client-side passphrase gate (light privacy; not strong security)
+    function buildSmsHref() {
+      // iOS: sms:+number&body=...
+      if (isIOS) return `sms:${PHONE}&body=${BODY}`;
+      // Android: smsto:+number:body
+      if (isAndroid) return `smsto:${PHONE}:${BODY}`;
+      // Desktop fallback (rarely handled): sms:+number?body=...
+      return `sms:${PHONE}?body=${BODY}`;
+    }
+
+    function prettyUK(e164) {
+      // +44 7866 533165 style spacing
+      if (!e164.startsWith("+44")) return e164;
+      const rest = e164.slice(3);
+      return `+44 ${rest.slice(0,4)} ${rest.slice(4,9)} ${rest.slice(9)}`.trim();
+    }
+
+    // Elements
     const gate = document.getElementById('gate');
     const content = document.getElementById('content');
     const enter = document.getElementById('enter');
     const pw = document.getElementById('pw');
+    const smsBtn = document.getElementById('smsBtn');
+    const mailBtn = document.getElementById('mailBtn');
+    const addrSpan = document.getElementById('addr');
+    const prettyPhone = document.getElementById('prettyPhone');
+    const prettyEmail = document.getElementById('prettyEmail');
+    const desktopHint = document.getElementById('desktopHint');
+
+    // Gate logic
     function openIfMatch(){
       if ((pw.value || '').trim().toLowerCase() === PASS.toLowerCase()){
         gate.classList.add('hidden');
         content.classList.remove('hidden');
-        // Basic spam-thwart: disable copy/paste of email until unlocked
+
+        // Build links from variables
+        const smsHref = buildSmsHref();
+        smsBtn.setAttribute('href', smsHref);
+
+        const mailHref = `mailto:${EMAIL}?subject=${encodeURIComponent("Memory of Emmie-Jane")}&body=${
+          encodeURIComponent("How you knew her:\nStory:\nPermission to share (Y/N):")
+        }`;
+        mailBtn.setAttribute('href', mailHref);
+
+        // Update visible text from variables
+        addrSpan.textContent = EMAIL;
+        prettyEmail.textContent = EMAIL;
+        prettyPhone.textContent = prettyUK(PHONE);
+
+        // If not on mobile, disable SMS button and show hint
+        if (!isMobile) {
+          smsBtn.classList.add('disabled');
+          desktopHint.classList.remove('hidden');
+        }
       } else {
-        alert('That passphrase didn\'t match. Please try again.');
+        alert("That passphrase didn't match. Please try again.");
         pw.focus();
       }
     }
