@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Share a Memory for Emmie-Jane</title>
+  <title id="docTitle">Share a Memory</title>
   <style>
     :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#94a3b8; --accent:#38bdf8; }
     *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:linear-gradient(135deg,var(--bg),#111827)}
@@ -28,65 +28,69 @@
 <body>
   <div class="wrap">
     <div class="card" id="gate">
-      <h1>Share a Memory for Emmie-Jane</h1>
-      <p>This private page lets you send Mike a story or photo. Please enter the passphrase from the order of service.</p>
+      <h1 id="gateTitle">Share a Memory</h1>
+      <p id="gateIntro"></p>
       <div class="pass">
         <input id="pw" type="password" placeholder="Passphrase" autocomplete="off" />
         <button id="enter">Enter</button>
       </div>
-      <small>Tip: If you can’t find it, ask a member of the family for the passphrase.</small>
+      <small id="gateTip"></small>
     </div>
 
     <div class="card hidden" id="content">
-      <h1>Thank you for sharing a memory</h1>
-      <p>You can use either button below. If you’re on a phone, it will open your apps automatically.</p>
+      <h1 id="thanksTitle">Thank you for sharing a memory</h1>
+      <p id="thanksIntro"></p>
 
       <div class="btns">
-        <a class="btn primary" id="smsBtn" href="#">Text Mike (SMS)</a>
-        <a class="btn secondary" id="mailBtn" href="#">Email a story</a>
+        <a class="btn primary" id="smsBtn" href="#"></a>
+        <a class="btn secondary" id="mailBtn" href="#"></a>
       </div>
 
-      <p class="hint hidden" id="desktopHint"><small>If you’re on a computer, the SMS button is disabled. Use the email button or copy the number below into your phone.</small></p>
+      <p class="hint hidden" id="desktopHint"><small></small></p>
 
-      <p><small>By sending a message/photo you consent to sharing it with Emmie-Jane’s family. To remove or correct a submission, reply to Mike or email <span id="addr"></span>.</small></p>
+      <p><small id="consentLine"></small></p>
 
       <div class="foot">
-        <small>Having trouble? You can copy these instead:</small>
-        <small><strong>Text:</strong> <span id="prettyPhone"></span></small>
-        <small><strong>Email:</strong> <span id="prettyEmail"></span></small>
+        <small id="fallbackLead"></small>
+        <small><strong id="labelText"></strong> <span id="prettyPhone"></span></small>
+        <small><strong id="labelEmail"></strong> <span id="prettyEmail"></span></small>
       </div>
     </div>
   </div>
 
   <script>
-    // ==== EDIT THESE THREE VALUES ONLY ====
-    const PASS  = "cullen-bay-glitter";       // passphrase shown on the programme
-    const PHONE = "+447866533165";            // Mike's number in E.164 format
-    const EMAIL = "mike.dalziel+ej@gmail.com";// inbox you manage
-    // ======================================
+    // ======== EDIT HERE (everything else updates automatically) =========
+    const PERSON       = "Emmie-Jane";                // Deceased's name
+    const CONTACT_NAME = "Mike";                      // Your name (for on-screen text)
+    const PASS         = "cullen-bay-glitter";        // Passphrase
+    const PHONE        = "+447866533165";             // Your number (E.164)
+    const EMAIL        = "mike.dalziel+ejstories@gmail.com"; // Inbox you manage
 
-    // Helpers
-    const ua = navigator.userAgent || "";
-    const isIOS = /iPad|iPhone|iPod/.test(ua);
-    const isAndroid = /Android/.test(ua);
-    const isMobile = isIOS || isAndroid;
-    const BODY = encodeURIComponent("I have a story to share about Emmie-Jane. (Feel free to attach a photo.)");
+    // Optional copy tweaks (change if you want different wording)
+    const STRINGS = {
+      gateIntro: `This private page lets you send ${CONTACT_NAME} a story or photo about ${PERSON}. Please enter the passphrase from the order of service.`,
+      gateTip: "Tip: If you can’t find it, ask a member of the family for the passphrase.",
+      thanksIntro: "You can use either button below. If you’re on a phone, it will open your apps automatically.",
+      smsButton: `Text ${CONTACT_NAME} (SMS)`,
+      emailButton: "Email a story",
+      desktopHint: "If you’re on a computer, the SMS button is disabled. Use the email button or copy the number below into your phone.",
+      consent: `By sending a message/photo you consent to sharing it with ${PERSON}’s family. To remove or correct a submission, reply to ${CONTACT_NAME} or email `,
+      fallbackLead: "Having trouble? You can copy these instead:",
+      labelText: "Text:",
+      labelEmail: "Email:",
+      smsBody: `I have a story to share about ${PERSON}. (Feel free to attach a photo.)`,
+      emailSubject: `Memory of ${PERSON}`,
+      emailBody: "How you knew them:\nStory:\nPermission to share (Y/N):"
+    };
+    // ====================================================================
 
-    function buildSmsHref() {
-      // iOS: sms:+number&body=...
-      if (isIOS) return `sms:${PHONE}&body=${BODY}`;
-      // Android: smsto:+number:body
-      if (isAndroid) return `smsto:${PHONE}:${BODY}`;
-      // Desktop fallback (rarely handled): sms:+number?body=...
-      return `sms:${PHONE}?body=${BODY}`;
-    }
-
-    function prettyUK(e164) {
-      // +44 7866 533165 style spacing
-      if (!e164.startsWith("+44")) return e164;
-      const rest = e164.slice(3);
-      return `+44 ${rest.slice(0,4)} ${rest.slice(4,9)} ${rest.slice(9)}`.trim();
-    }
+    // Document titles/headers
+    document.getElementById('docTitle').textContent = `Share a Memory for ${PERSON}`;
+    document.getElementById('gateTitle').textContent = `Share a Memory for ${PERSON}`;
+    document.getElementById('thanksTitle').textContent = `Thank you for sharing a memory of ${PERSON}`;
+    document.getElementById('gateIntro').textContent = STRINGS.gateIntro;
+    document.getElementById('gateTip').textContent = STRINGS.gateTip;
+    document.getElementById('thanksIntro').textContent = STRINGS.thanksIntro;
 
     // Elements
     const gate = document.getElementById('gate');
@@ -95,41 +99,69 @@
     const pw = document.getElementById('pw');
     const smsBtn = document.getElementById('smsBtn');
     const mailBtn = document.getElementById('mailBtn');
-    const addrSpan = document.getElementById('addr');
+    const desktopHint = document.getElementById('desktopHint').firstElementChild;
+    const addrSpan = document.getElementById('prettyEmail');
     const prettyPhone = document.getElementById('prettyPhone');
     const prettyEmail = document.getElementById('prettyEmail');
-    const desktopHint = document.getElementById('desktopHint');
+    const labelText = document.getElementById('labelText');
+    const labelEmail = document.getElementById('labelEmail');
 
-    // Gate logic
+    // Set button labels and static lines
+    smsBtn.textContent = STRINGS.smsButton;
+    mailBtn.textContent = STRINGS.emailButton;
+    desktopHint.textContent = STRINGS.desktopHint;
+    document.getElementById('consentLine').innerHTML = `${STRINGS.consent}<span id="addr"></span>.`;
+    document.getElementById('fallbackLead').textContent = STRINGS.fallbackLead;
+    labelText.textContent = STRINGS.labelText;
+    labelEmail.textContent = STRINGS.labelEmail;
+
+    // UA detection
+    const ua = navigator.userAgent || "";
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isAndroid = /Android/.test(ua);
+    const isMobile = isIOS || isAndroid;
+    const BODY = encodeURIComponent(STRINGS.smsBody);
+
+    function buildSmsHref() {
+      if (isIOS) return `sms:${PHONE}&body=${BODY}`;
+      if (isAndroid) return `smsto:${PHONE}:${BODY}`;
+      return `sms:${PHONE}?body=${BODY}`; // desktop fallback (usually ignored)
+    }
+
+    function prettyUK(e164) {
+      if (!e164.startsWith("+44")) return e164;
+      const rest = e164.slice(3);
+      // basic UK mobile spacing +44 #### ######
+      return `+44 ${rest.slice(0,4)} ${rest.slice(4,9)} ${rest.slice(9)}`.trim();
+    }
+
     function openIfMatch(){
       if ((pw.value || '').trim().toLowerCase() === PASS.toLowerCase()){
         gate.classList.add('hidden');
         content.classList.remove('hidden');
 
-        // Build links from variables
-        const smsHref = buildSmsHref();
-        smsBtn.setAttribute('href', smsHref);
-
-        const mailHref = `mailto:${EMAIL}?subject=${encodeURIComponent("Memory of Emmie-Jane")}&body=${
-          encodeURIComponent("How you knew her:\nStory:\nPermission to share (Y/N):")
-        }`;
+        // Links
+        smsBtn.setAttribute('href', buildSmsHref());
+        const mailHref = `mailto:${EMAIL}?subject=${encodeURIComponent(STRINGS.emailSubject)}&body=${encodeURIComponent(STRINGS.emailBody)}`;
         mailBtn.setAttribute('href', mailHref);
 
-        // Update visible text from variables
+        // Visible text
+        document.getElementById('addr').textContent = EMAIL;
         addrSpan.textContent = EMAIL;
         prettyEmail.textContent = EMAIL;
         prettyPhone.textContent = prettyUK(PHONE);
 
-        // If not on mobile, disable SMS button and show hint
+        // On desktop, disable SMS and show hint
         if (!isMobile) {
           smsBtn.classList.add('disabled');
-          desktopHint.classList.remove('hidden');
+          document.getElementById('desktopHint').classList.remove('hidden');
         }
       } else {
         alert("That passphrase didn't match. Please try again.");
         pw.focus();
       }
     }
+
     enter.addEventListener('click', openIfMatch);
     pw.addEventListener('keydown', e=>{ if(e.key==='Enter'){ openIfMatch(); }});
   </script>
